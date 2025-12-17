@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_netflix/screens/BienvenidaScreen.dart';
 
-void main() {
-  runApp(const MainApp());
+void main(){
+  runApp(AppProyecto());
 }
-
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class AppProyecto extends StatelessWidget {
+  const AppProyecto({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+      home: BienvenidaScreen(),
     );
   }
 }
