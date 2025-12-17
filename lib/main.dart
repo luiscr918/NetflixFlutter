@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proyecto_netflix/screens/BienvenidaScreen.dart';
+import 'package:proyecto_netflix/screens/bienvenida_screen.dart';
 
 void main(){
   runApp(AppProyecto());
