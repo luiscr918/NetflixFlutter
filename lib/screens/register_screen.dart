@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_netflix/screens/login_screen.dart';
 
-
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
 
@@ -9,7 +8,7 @@ class RegisterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           image: DecorationImage(
             image: NetworkImage(
               "https://i.pinimg.com/736x/1a/10/72/1a10720b00b3c1f780de2dd3663d6722.jpg",
@@ -25,17 +24,17 @@ class RegisterScreen extends StatelessWidget {
 
 Widget _contenidoRegister(BuildContext context) {
   return Padding(
-    padding: const EdgeInsets.all(24),
+    padding: EdgeInsets.all(24),
     child: Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(199, 1, 1, 1),
+        color: Color.fromARGB(199, 1, 1, 1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             "Registro",
             style: TextStyle(
               color: Colors.redAccent,
@@ -44,10 +43,10 @@ Widget _contenidoRegister(BuildContext context) {
             ),
           ),
 
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           TextField(
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Nombre",
               labelStyle: TextStyle(color: Colors.white),
               prefixIcon: Icon(Icons.person, color: Colors.white),
@@ -58,10 +57,10 @@ Widget _contenidoRegister(BuildContext context) {
             style: TextStyle(color: Colors.white),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           TextField(
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Correo",
               labelStyle: TextStyle(color: Colors.white),
               prefixIcon: Icon(Icons.email, color: Colors.white),
@@ -72,11 +71,11 @@ Widget _contenidoRegister(BuildContext context) {
             style: TextStyle(color: Colors.white),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           TextField(
             obscureText: true,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Contraseña",
               labelStyle: TextStyle(color: Colors.white),
               prefixIcon: Icon(Icons.lock, color: Colors.white),
@@ -87,7 +86,7 @@ Widget _contenidoRegister(BuildContext context) {
             style: TextStyle(color: Colors.white),
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
 
           SizedBox(
             width: double.infinity,
@@ -98,12 +97,19 @@ Widget _contenidoRegister(BuildContext context) {
                 ),
               ),
               onPressed: () {},
-              child: const Text("Registrarse"),
+              child: Text("Registrarse"),
             ),
           ),
           TextButton(
-            onPressed: ()=>Navigator.push(context,MaterialPageRoute(builder:(context) => LoginScreen(),)), 
-            child: Text("¿Ya tienes una cuenta? Inicia sesión aquí",style: TextStyle(color: Color.fromRGBO(80, 208, 218, 1)),))
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+            ),
+            child: Text(
+              "¿Ya tienes una cuenta? Inicia sesión aquí",
+              style: TextStyle(color: Color.fromRGBO(80, 208, 218, 1)),
+            ),
+          ),
         ],
       ),
     ),
