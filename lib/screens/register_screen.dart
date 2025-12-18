@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_netflix/screens/login_screen.dart';
+
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
@@ -99,6 +101,9 @@ Widget _contenidoRegister(BuildContext context) {
               child: const Text("Registrarse"),
             ),
           ),
+          TextButton(
+            onPressed: ()=>Navigator.push(context,MaterialPageRoute(builder:(context) => LoginScreen(),)), 
+            child: Text("¿Ya tienes una cuenta? Inicia sesión aquí",style: TextStyle(color: Color.fromRGBO(80, 208, 218, 1)),))
         ],
       ),
     ),

@@ -38,7 +38,7 @@ Widget _contenido(BuildContext context) {
         children: [
           // TÍTULO
           Text(
-            "Bienvenido a Netflix",
+            "Bienvenido a TerrorFlix",
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.redAccent,
@@ -51,7 +51,7 @@ Widget _contenido(BuildContext context) {
 
           // SUBTÍTULO
           Text(
-            "Películas y series al alcance de un clic.",
+            "Solo para valientes.",
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white, fontSize: 18),
           ),
@@ -60,7 +60,7 @@ Widget _contenido(BuildContext context) {
 
           // DESCRIPCIÓN
           Text(
-            "Explora contenido, descubre nuevos favoritos y disfruta una experiencia de streaming diseñada para aprender Flutter.",
+            "Explora un mundo de terror lleno de suspenso, misterio y horror. Una aplicación móvil dedicada únicamente a las películas que te harán temblar.",
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
