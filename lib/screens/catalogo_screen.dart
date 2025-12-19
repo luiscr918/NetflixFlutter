@@ -6,8 +6,9 @@ class CatalogoScreen extends StatelessWidget {
   const CatalogoScreen({super.key});
 
   Future<Map<String, dynamic>> cargarPeliculas(BuildContext context) async {
-    final jsonString = await DefaultAssetBundle.of(context)
-        .loadString('assets/data/peliculas_terror.json');
+    final jsonString = await DefaultAssetBundle.of(
+      context,
+    ).loadString('assets/data/terror.json');
     return json.decode(jsonString);
   }
 
@@ -62,8 +63,7 @@ class CatalogoScreen extends StatelessWidget {
                             },
                             child: Container(
                               width: 150,
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 8),
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
                               child: Column(
                                 children: [
                                   Expanded(
@@ -75,18 +75,16 @@ class CatalogoScreen extends StatelessWidget {
                                   const SizedBox(height: 5),
                                   Text(
                                     pelicula["titulo"],
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                    ),
+                                    style: const TextStyle(color: Colors.white),
                                     textAlign: TextAlign.center,
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
                           );
                         },
                       ),
-                    )
+                    ),
                   ],
                 );
               }).toList(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proyecto_netflix/screens/catalogo_screen.dart';
 import 'package:proyecto_netflix/screens/register_screen.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -8,7 +9,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration:  BoxDecoration(
+        decoration: BoxDecoration(
           image: DecorationImage(
             image: NetworkImage(
               "https://i.pinimg.com/736x/21/2f/64/212f64a50dec3d9a4a8d931efce1f1b9.jpg",
@@ -24,17 +25,17 @@ class LoginScreen extends StatelessWidget {
 
 Widget _contenidoLogin(BuildContext context) {
   return Padding(
-    padding:  EdgeInsets.all(24),
+    padding: EdgeInsets.all(24),
     child: Container(
-      padding:  EdgeInsets.all(24),
+      padding: EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color:  Color.fromARGB(199, 1, 1, 1),
+        color: Color.fromARGB(199, 1, 1, 1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-           Text(
+          Text(
             "Iniciar sesión",
             style: TextStyle(
               color: Colors.redAccent,
@@ -43,10 +44,10 @@ Widget _contenidoLogin(BuildContext context) {
             ),
           ),
 
-           SizedBox(height: 24),
+          SizedBox(height: 24),
 
           TextField(
-            decoration:  InputDecoration(
+            decoration: InputDecoration(
               labelText: "Correo",
               labelStyle: TextStyle(color: Colors.white),
               prefixIcon: Icon(Icons.email, color: Colors.white),
@@ -57,11 +58,11 @@ Widget _contenidoLogin(BuildContext context) {
             style: TextStyle(color: Colors.white),
           ),
 
-           SizedBox(height: 16),
+          SizedBox(height: 16),
 
           TextField(
             obscureText: true,
-            decoration:  InputDecoration(
+            decoration: InputDecoration(
               labelText: "Contraseña",
               labelStyle: TextStyle(color: Colors.white),
               prefixIcon: Icon(Icons.lock, color: Colors.white),
@@ -72,7 +73,7 @@ Widget _contenidoLogin(BuildContext context) {
             style: TextStyle(color: Colors.white),
           ),
 
-           SizedBox(height: 32),
+          SizedBox(height: 32),
 
           SizedBox(
             width: double.infinity,
@@ -82,15 +83,29 @@ Widget _contenidoLogin(BuildContext context) {
                   Color.fromRGBO(158, 32, 32, 1),
                 ),
               ),
-              onPressed: () {},
-              child:  Text("Entrar"),
+              onPressed: () => irCatalogo(context),
+              child: Text("Entrar"),
             ),
           ),
           TextButton(
-            onPressed: ()=>Navigator.push(context,MaterialPageRoute(builder:(context) => RegisterScreen(),)), 
-            child: Text("¿No tienes una cuenta? Registrate aquí",style: TextStyle(color: Color.fromRGBO(80, 208, 218, 1)),))
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RegisterScreen()),
+            ),
+            child: Text(
+              "¿No tienes una cuenta? Registrate aquí",
+              style: TextStyle(color: Color.fromRGBO(80, 208, 218, 1)),
+            ),
+          ),
         ],
       ),
     ),
+  );
+}
+
+void irCatalogo(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => CatalogoScreen()),
   );
 }

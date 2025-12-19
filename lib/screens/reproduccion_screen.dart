@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class ReproduccionScreen extends StatefulWidget {
-  final Map pelicula; 
+  final Map pelicula;
 
   const ReproduccionScreen({super.key, required this.pelicula});
 
@@ -17,7 +17,7 @@ class _ReproduccionScreenState extends State<ReproduccionScreen> {
   void initState() {
     super.initState();
     _controller =
-        VideoPlayerController.network(widget.pelicula["video"])
+        VideoPlayerController.networkUrl(Uri.parse(widget.pelicula["video"]))
           ..initialize().then((_) {
             setState(() {});
           });
@@ -50,13 +50,10 @@ class _ReproduccionScreenState extends State<ReproduccionScreen> {
                   child: CircularProgressIndicator(),
                 ),
 
-        
           VideoProgressIndicator(
             _controller,
             allowScrubbing: true,
-            colors: VideoProgressColors(
-              playedColor: Colors.red,
-            ),
+            colors: VideoProgressColors(playedColor: Colors.red),
           ),
 
           Row(
@@ -64,9 +61,7 @@ class _ReproduccionScreenState extends State<ReproduccionScreen> {
             children: [
               IconButton(
                 icon: Icon(
-                  _controller.value.isPlaying
-                      ? Icons.pause
-                      : Icons.play_arrow,
+                  _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
                   color: Colors.white,
                   size: 35,
                 ),
@@ -79,8 +74,11 @@ class _ReproduccionScreenState extends State<ReproduccionScreen> {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.volume_up,
-                    color: Colors.white, size: 35),
+                icon: const Icon(
+                  Icons.volume_up,
+                  color: Colors.white,
+                  size: 35,
+                ),
                 onPressed: () {
                   _controller.setVolume(1.0);
                 },
@@ -88,7 +86,6 @@ class _ReproduccionScreenState extends State<ReproduccionScreen> {
             ],
           ),
 
-         
           Padding(
             padding: const EdgeInsets.all(12),
             child: Text(
