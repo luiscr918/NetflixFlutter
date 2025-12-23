@@ -101,10 +101,7 @@ Widget _contenidoRegister(BuildContext context) {
             ),
           ),
           TextButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => LoginScreen()),
-            ),
+            onPressed: () => Navigator.pushNamed(context, '/login'),
             child: Text(
               "¿Ya tienes una cuenta? Inicia sesión aquí",
               style: TextStyle(color: Color.fromRGBO(80, 208, 218, 1)),

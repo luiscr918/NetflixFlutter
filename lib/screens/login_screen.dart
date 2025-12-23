@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:proyecto_netflix/screens/catalogo_screen.dart';
 import 'package:proyecto_netflix/screens/register_screen.dart';
@@ -24,6 +25,9 @@ class LoginScreen extends StatelessWidget {
 }
 
 Widget _contenidoLogin(BuildContext context) {
+  TextEditingController correo = TextEditingController();
+  TextEditingController contrasenia = TextEditingController();
+
   return Padding(
     padding: EdgeInsets.all(24),
     child: Container(
@@ -47,6 +51,7 @@ Widget _contenidoLogin(BuildContext context) {
           SizedBox(height: 24),
 
           TextField(
+            controller: correo,
             decoration: InputDecoration(
               labelText: "Correo",
               labelStyle: TextStyle(color: Colors.white),
@@ -61,6 +66,7 @@ Widget _contenidoLogin(BuildContext context) {
           SizedBox(height: 16),
 
           TextField(
+            controller: contrasenia,
             obscureText: true,
             decoration: InputDecoration(
               labelText: "Contraseña",
@@ -83,15 +89,12 @@ Widget _contenidoLogin(BuildContext context) {
                   Color.fromRGBO(158, 32, 32, 1),
                 ),
               ),
-              onPressed: () => irCatalogo(context),
+              onPressed: () => logearse(context, correo.text, contrasenia.text),
               child: Text("Entrar"),
             ),
           ),
           TextButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RegisterScreen()),
-            ),
+            onPressed: () => Navigator.pushNamed(context, '/registro'),
             child: Text(
               "¿No tienes una cuenta? Registrate aquí",
               style: TextStyle(color: Color.fromRGBO(80, 208, 218, 1)),
@@ -103,9 +106,38 @@ Widget _contenidoLogin(BuildContext context) {
   );
 }
 
-void irCatalogo(BuildContext context) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => CatalogoScreen()),
-  );
+Future<void> logearse(BuildContext context, correo, contrasenia) async {
+  try {
+    final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: correo,
+      password: contrasenia,
+    );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Felicidades"),
+          content: Text("Inicio de sesión exitoso"),
+        );
+      },
+    );
+    Navigator.pushNamed(context, '/catalogo');
+  } on FirebaseAuthException catch (e) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Error"),
+          content: Text("Error al iniciar Sesión"),
+        );
+      },
+    );
+    if (e.code == 'user-not-found') {
+      print('No user found for that email.');
+    } else if (e.code == 'wrong-password') {
+      print('Wrong password provided for that user.');
+    }
+  } catch (e) {
+    print(e);
+  }
 }
