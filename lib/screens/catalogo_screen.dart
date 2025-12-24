@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'reproduccion_screen.dart';
 
@@ -17,8 +18,19 @@ class CatalogoScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text("Catálogo Terror"),
-        backgroundColor: Colors.black,
+        title: const Text(
+          "Catálogo",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color.fromRGBO(158, 32, 32, 1),
+        actions: [
+          IconButton(
+            onPressed: () => cerrarSesion(context),
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: "Cerrar Sesión",
+            color: const Color.fromARGB(255, 233, 233, 234),
+          ),
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: cargarPeliculas(context),
@@ -95,5 +107,14 @@ class CatalogoScreen extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+// --- FUNCIÓN CERRAR SESIÓN ---
+Future<void> cerrarSesion(BuildContext context) async {
+  await FirebaseAuth.instance.signOut();
+  // Al cerrar sesión, lo enviamos de vuelta al Login y limpiamos el historial de navegación
+  if (context.mounted) {
+    Navigator.pushReplacementNamed(context, '/login');
   }
 }
