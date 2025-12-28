@@ -1,7 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:proyecto_netflix/screens/catalogo_screen.dart';
-import 'package:proyecto_netflix/screens/register_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -108,36 +106,49 @@ Widget _contenidoLogin(BuildContext context) {
 
 Future<void> logearse(BuildContext context, correo, contrasenia) async {
   try {
-    final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
       email: correo,
       password: contrasenia,
     );
     showDialog(
+      // ignore: use_build_context_synchronously
       context: context,
+      barrierDismissible:
+          false, //esto hace que el usuario no pueda cerrar el alert
       builder: (context) {
         return AlertDialog(
           title: Text("Felicidades"),
-          content: Text("Inicio de sesión exitoso"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Inicio de sesión exitoso"),
+              Text("Redirigiendo....."),
+            ],
+          ),
         );
       },
     );
+    // 3. ESPERAR 2  segundos antes de seguir
+    await Future.delayed(const Duration(seconds: 1));
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
+    // ignore: use_build_context_synchronously
     Navigator.pushNamed(context, '/catalogo');
   } on FirebaseAuthException catch (e) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Error"),
-          content: Text("Error al iniciar Sesión"),
-        );
-      },
-    );
-    if (e.code == 'user-not-found') {
-      print('No user found for that email.');
-    } else if (e.code == 'wrong-password') {
-      print('Wrong password provided for that user.');
+    if (e.code == 'invalid-credential') {
+      showDialog(
+        // ignore: use_build_context_synchronously
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Error"),
+            content: Text("Credenciales Incorrectas"),
+          );
+        },
+      );
     }
   } catch (e) {
+    // ignore: avoid_print
     print(e);
   }
 }

@@ -130,7 +130,7 @@ Future<void> registrar(
   String contrasenia,
   BuildContext context,
 ) async {
-  Future<bool> autenticacion = guardarAuth(correo, contrasenia);
+  Future<bool> autenticacion = guardarAuth(correo, contrasenia, context);
   if (await autenticacion) {
     try {
       // 1. Obtenemos el ID único del usuario recién creado
@@ -147,10 +147,27 @@ Future<void> registrar(
       await db.collection("usuarios").doc(uid).set(datosUsuario);
 
       // 4. Si todo sale bien, lo mandamos al login o inicio
+      showDialog(
+        // ignore: use_build_context_synchronously
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Éxito"),
+            content: Text("Registrado Correctamente"),
+          );
+        },
+      );
+      await Future.delayed(Duration(seconds: 1));
+      // ignore: use_build_context_synchronously
+      Navigator.pop(context);
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
+      // ignore: avoid_print
       print("Error al guardar en Firestore: $e");
       showDialog(
+        // ignore: use_build_context_synchronously
         context: context,
         builder: (context) {
           return AlertDialog(
@@ -160,31 +177,53 @@ Future<void> registrar(
         },
       );
     }
-  } else {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Error"),
-          content: Text("Error con el servicio de autenticación"),
-        );
-      },
-    );
   }
 }
 
-Future<bool> guardarAuth(correo, contrasenia) async {
+Future<bool> guardarAuth(String correo, String contrasenia, context) async {
   try {
-    final credential = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: correo, password: contrasenia);
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: correo,
+      password: contrasenia,
+    );
     return true;
   } on FirebaseAuthException catch (e) {
     if (e.code == 'weak-password') {
-      print('The password provided is too weak.');
+      showDialog(
+        // ignore: use_build_context_synchronously
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Error"),
+            content: Text("Contraseña no válida"),
+          );
+        },
+      );
     } else if (e.code == 'email-already-in-use') {
-      print('The account already exists for that email.');
+      showDialog(
+        // ignore: use_build_context_synchronously
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Error"),
+            content: Text("Email ya en uso"),
+          );
+        },
+      );
+    } else if (e.code == 'invalid-email') {
+      showDialog(
+        // ignore: use_build_context_synchronously
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Error"),
+            content: Text("Formato de Correo inválido"),
+          );
+        },
+      );
     }
   } catch (e) {
+    // ignore: avoid_print
     print(e);
   }
   return false;
