@@ -1,9 +1,24 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:proyecto_netflix/const/firebase.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  XFile? imagen;
+  void cambiarImagen(imagenNueva) {
+    setState(() {
+      imagen = imagenNueva;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +32,11 @@ class RegisterScreen extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        child: SafeArea(child: Center(child: _contenidoRegister(context))),
+        child: SafeArea(
+          child: Center(
+            child: _contenidoRegister(context, cambiarImagen, imagen),
+          ),
+        ),
       ),
     );
   }
@@ -26,7 +45,7 @@ class RegisterScreen extends StatelessWidget {
 TextEditingController nombre = TextEditingController();
 TextEditingController correo = TextEditingController();
 TextEditingController contrasenia = TextEditingController();
-Widget _contenidoRegister(BuildContext context) {
+Widget _contenidoRegister(BuildContext context, cambiarImagen, imagen) {
   return Padding(
     padding: EdgeInsets.all(24),
     child: Container(
@@ -91,6 +110,29 @@ Widget _contenidoRegister(BuildContext context) {
             ),
             style: TextStyle(color: Colors.white),
           ),
+          Text(""),
+          FilledButton.icon(
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(
+                Color.fromRGBO(139, 55, 55, 1),
+              ),
+            ),
+            onPressed: () => abrirGaleria(cambiarImagen),
+            label: Text("Seleccionar foto de perfil"),
+            icon: Icon(Icons.image_search),
+          ),
+          SizedBox(height: 16),
+
+          CircleAvatar(
+            radius: 60, //  tamaño (60 = 120x120)
+            backgroundColor: Colors.grey[800],
+            backgroundImage: imagen != null
+                ? FileImage(File(imagen!.path))
+                : null,
+            child: imagen == null
+                ? const Icon(Icons.person, size: 60, color: Colors.white54)
+                : null,
+          ),
 
           SizedBox(height: 32),
 
@@ -142,6 +184,7 @@ Future<void> registrar(
         "correo": correo,
         "fecha_registro": DateTime.now(),
       };
+      //aqui verificaremos que la imagen se guarde correctamente en storage
 
       // 3. Guardamos en la colección usuarios usando el UID como nombre del documento
       await db.collection("usuarios").doc(uid).set(datosUsuario);
@@ -227,4 +270,13 @@ Future<bool> guardarAuth(String correo, String contrasenia, context) async {
     print(e);
   }
   return false;
+}
+
+//funcion para cargar una foto de perfil
+Future<void> abrirGaleria(cambiarImagen) async {
+  final imagen = await ImagePicker().pickImage(source: ImageSource.gallery);
+  cambiarImagen(imagen);
+}
+void guardarImagenStorage(){
+  
 }
