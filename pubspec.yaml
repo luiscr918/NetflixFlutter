@@ -10,7 +10,24 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Firebase core (BASE)
+  firebase_core: ^2.32.0
+
+  # Auth (login / register)
+  firebase_auth: ^4.19.0
+
+  # Firestore (usuarios)
+  cloud_firestore: ^4.17.5
+
+  # Realtime Database (películas)
+  firebase_database: ^10.5.7
+
+  # Storage (trailers)
+  firebase_storage: ^11.7.7
+
+  # Video player
   video_player: ^2.8.1
+
 
 dev_dependencies:
   flutter_test:
