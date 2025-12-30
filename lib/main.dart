@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_netflix/screens/bienvenida_screen.dart';
 import 'package:proyecto_netflix/screens/catalogo_screen.dart';
 import 'package:proyecto_netflix/screens/login_screen.dart';
+import 'package:proyecto_netflix/screens/profile_screen.dart';
 import 'package:proyecto_netflix/screens/register_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -31,6 +32,7 @@ class AppProyecto extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/registro': (context) => RegisterScreen(),
         '/catalogo': (context) => CatalogoScreen(),
+        '/profile':(context)=>ProfileScreen()
       },
       home: BienvenidaScreen(),
     );

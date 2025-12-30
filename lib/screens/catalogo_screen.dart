@@ -92,8 +92,7 @@ class CatalogoScreen extends StatelessWidget {
                           },
                           child: Container(
                             width: 150,
-                            margin:
-                                const EdgeInsets.symmetric(horizontal: 8),
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
                             child: Column(
                               children: [
                                 Expanded(
@@ -105,8 +104,7 @@ class CatalogoScreen extends StatelessWidget {
                                 const SizedBox(height: 5),
                                 Text(
                                   pelicula["titulo"],
-                                  style: const TextStyle(
-                                      color: Colors.white),
+                                  style: const TextStyle(color: Colors.white),
                                   textAlign: TextAlign.center,
                                 ),
                               ],
@@ -121,6 +119,12 @@ class CatalogoScreen extends StatelessWidget {
             }).toList(),
           );
         },
+      ),
+      // Boton para ir a Perfil
+      floatingActionButton: FloatingActionButton(
+        backgroundColor:Color.fromRGBO(158, 32, 32, 1),
+        onPressed: () => Navigator.pushNamed(context, '/profile'),
+        child: const Icon(Icons.person,color:Color.fromRGBO(255, 255, 255, 1),),
       ),
     );
   }
