@@ -262,37 +262,19 @@ Future<bool> guardarAuth(String correo, String contrasenia, context) async {
     return true;
   } on FirebaseAuthException catch (e) {
     if (e.code == 'weak-password') {
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Contraseña no válida"),
-          );
-        },
+      mostrarError(
+        context,
+        "La contraseña es demasiado débil.\nNecesitas algo más fuerte para sobrevivir 🩸",
       );
     } else if (e.code == 'email-already-in-use') {
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Email ya en uso"),
-          );
-        },
+      mostrarError(
+        context,
+        "Este correo ya está registrado.\nAlguien más ya entró antes que tú… 👁️",
       );
     } else if (e.code == 'invalid-email') {
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Formato de Correo inválido"),
-          );
-        },
+      mostrarError(
+        context,
+        "El correo no tiene un formato válido.\nAlgo no se ve bien aquí ☠️",
       );
     }
   } catch (e) {
@@ -335,16 +317,37 @@ Future<bool> guardarImagenStorage(String uid, XFile imagen) async {
 void mostrarExito(BuildContext context) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (_) => AlertDialog(
-      title: const Text("Éxito"),
-      content: const Text("Registrado correctamente"),
+      backgroundColor: const Color(0xFF121212),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Row(
+        children: [
+          Icon(Icons.check_circle_outline, color: Colors.greenAccent),
+          SizedBox(width: 8),
+          Text(
+            "Bienvenido al horror",
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+      content: Text(
+        "Tu cuenta fue creada con éxito.\nPrepárate para el terror… 👁️",
+        style: TextStyle(color: Colors.grey.shade300),
+      ),
       actions: [
         TextButton(
           onPressed: () {
             Navigator.pop(context);
             Navigator.pushReplacementNamed(context, '/login');
           },
-          child: const Text("Aceptar"),
+          child: const Text(
+            "Entrar",
+            style: TextStyle(color: Colors.greenAccent),
+          ),
         ),
       ],
     ),
@@ -355,12 +358,29 @@ void mostrarError(BuildContext context, String mensaje) {
   showDialog(
     context: context,
     builder: (_) => AlertDialog(
-      title: const Text("Error"),
-      content: Text(mensaje),
+      backgroundColor: const Color(0xFF121212),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+          SizedBox(width: 8),
+          Text(
+            "Algo salió mal",
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+      content: Text(mensaje, style: TextStyle(color: Colors.grey.shade300)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text("Aceptar"),
+          child: const Text(
+            "Cerrar",
+            style: TextStyle(color: Colors.redAccent),
+          ),
         ),
       ],
     ),

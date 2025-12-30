@@ -148,47 +148,91 @@ void modalPrevio(BuildContext context, Map pelicula) {
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text("Estás a un paso"),
+        backgroundColor: const Color(0xFF121212),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "¿Qué deseas ver?",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+          textAlign: TextAlign.center,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("¿Qué deseas hacer?"),
-            const SizedBox(height: 15),
+            Text(
+              "Selecciona una opción para continuar con\n“${pelicula["titulo"]}”",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade300, fontSize: 14),
+            ),
+            const SizedBox(height: 25),
 
-            FilledButton.icon(
-              onPressed: () {
-                Navigator.pop(context); // cerrar modal
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ReproductorTrailerScreen(
-                      trailerUrl: pelicula["trailerUrl"],
-                      titulo: pelicula["titulo"],
-                    ),
+            // BOTÓN TRÁILER
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.grey.shade800,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                );
-              },
-              icon: const Icon(Icons.movie_creation_outlined),
-              label: const Text("Ver tráiler"),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReproductorTrailerScreen(
+                        trailerUrl: pelicula["trailerUrl"],
+                        titulo: pelicula["titulo"],
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.play_circle_outline),
+                label: const Text(
+                  "Ver tráiler",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
-            FilledButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ReproductorPeliculaScreen(
-                      peliculaUrl: pelicula["peliculaUrl"],
-                      titulo: pelicula["titulo"],
-                    ),
+            // BOTÓN PELÍCULA
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(158, 32, 32, 1),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                );
-              },
-              icon: const Icon(Icons.movie),
-              label: const Text("Ver película"),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReproductorPeliculaScreen(
+                        peliculaUrl: pelicula["peliculaUrl"],
+                        titulo: pelicula["titulo"],
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.movie),
+                label: const Text(
+                  "Ver película",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
           ],
         ),
