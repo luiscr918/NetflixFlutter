@@ -163,11 +163,20 @@ Widget _contenidoRegister(
           SizedBox(
             width: double.infinity,
             child: FilledButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith<Color>((
+                  states,
+                ) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return Colors.grey; // color cuando está deshabilitado
+                  }
+                  return const Color.fromRGBO(158, 32, 32, 1); // color normal
+                }),
+              ),
               onPressed: cargando
                   ? null
                   : () async {
-                      iniciarCarga(); // ⏳ MOSTRAR LOADER
-
+                      iniciarCarga();
                       await registrar(
                         nombre.text,
                         correo.text,
@@ -175,8 +184,7 @@ Widget _contenidoRegister(
                         context,
                         imagen,
                       );
-
-                      detenerCarga(); // ❌ OCULTAR LOADER
+                      detenerCarga();
                     },
               child: cargando
                   ? const SizedBox(
@@ -190,6 +198,7 @@ Widget _contenidoRegister(
                   : const Text("Registrarse"),
             ),
           ),
+
           TextButton(
             onPressed: () => Navigator.pushNamed(context, '/login'),
             child: Text(
@@ -336,7 +345,6 @@ void mostrarExito(BuildContext context) {
             Navigator.pushReplacementNamed(context, '/login');
           },
           child: const Text("Aceptar"),
-          
         ),
       ],
     ),
