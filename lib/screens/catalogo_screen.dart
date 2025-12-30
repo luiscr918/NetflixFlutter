@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'reproduccion_screen.dart';
+import 'package:proyecto_netflix/screens/reproductor_pelicula_screen.dart';
+import 'package:proyecto_netflix/screens/reproductor_trailer_screen.dart';
 
 class CatalogoScreen extends StatelessWidget {
   const CatalogoScreen({super.key});
@@ -81,7 +82,8 @@ class CatalogoScreen extends StatelessWidget {
                             peliculas[index] as Map<dynamic, dynamic>;
 
                         return GestureDetector(
-                          onTap: () {
+                          onTap: () => modalPrevio(context, pelicula),
+                          /* {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -89,7 +91,7 @@ class CatalogoScreen extends StatelessWidget {
                                     ReproduccionScreen(pelicula: pelicula),
                               ),
                             );
-                          },
+                          }, */
                           child: Container(
                             width: 150,
                             margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -122,18 +124,75 @@ class CatalogoScreen extends StatelessWidget {
       ),
       // Boton para ir a Perfil
       floatingActionButton: FloatingActionButton(
-        backgroundColor:Color.fromRGBO(158, 32, 32, 1),
+        backgroundColor: Color.fromRGBO(158, 32, 32, 1),
         onPressed: () => Navigator.pushNamed(context, '/profile'),
-        child: const Icon(Icons.person,color:Color.fromRGBO(255, 255, 255, 1),),
+        child: const Icon(
+          Icons.person,
+          color: Color.fromRGBO(255, 255, 255, 1),
+        ),
       ),
     );
   }
 }
 
-// 🔒 CERRAR SESIÓN
 Future<void> cerrarSesion(BuildContext context) async {
   await FirebaseAuth.instance.signOut();
   if (context.mounted) {
     Navigator.pushReplacementNamed(context, '/login');
   }
+}
+
+//modal para preguntar si quiere ver la pelicula o el trailer
+void modalPrevio(BuildContext context, Map pelicula) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Estás a un paso"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("¿Qué deseas hacer?"),
+            const SizedBox(height: 15),
+
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(context); // cerrar modal
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ReproductorTrailerScreen(
+                      trailerUrl: pelicula["trailerUrl"],
+                      titulo: pelicula["titulo"],
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.movie_creation_outlined),
+              label: const Text("Ver tráiler"),
+            ),
+
+            const SizedBox(height: 10),
+
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ReproductorPeliculaScreen(
+                      peliculaUrl: pelicula["peliculaUrl"],
+                      titulo: pelicula["titulo"],
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.movie),
+              label: const Text("Ver película"),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }
