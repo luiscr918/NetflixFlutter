@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:proyecto_netflix/const/firebase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
+  bool cargando = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +36,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         child: SafeArea(
           child: Center(
-            child: _contenidoRegister(context, cambiarImagen, imagen),
+            child: _contenidoRegister(
+              context,
+              cambiarImagen,
+              imagen,
+              cargando,
+              () {
+                setState(() {
+                  cargando = true;
+                });
+              },
+              () {
+                setState(() {
+                  cargando = false;
+                });
+              },
+            ),
           ),
         ),
       ),
@@ -45,7 +62,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 TextEditingController nombre = TextEditingController();
 TextEditingController correo = TextEditingController();
 TextEditingController contrasenia = TextEditingController();
-Widget _contenidoRegister(BuildContext context, cambiarImagen, imagen) {
+Widget _contenidoRegister(
+  BuildContext context,
+  cambiarImagen,
+  imagen,
+  bool cargando,
+  VoidCallback iniciarCarga,
+  VoidCallback detenerCarga,
+) {
   return Padding(
     padding: EdgeInsets.all(24),
     child: Container(
@@ -139,18 +163,31 @@ Widget _contenidoRegister(BuildContext context, cambiarImagen, imagen) {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(
-                  Color.fromRGBO(158, 32, 32, 1),
-                ),
-              ),
-              onPressed: () => registrar(
-                nombre.text,
-                correo.text,
-                contrasenia.text,
-                context,
-              ),
-              child: Text("Registrarse"),
+              onPressed: cargando
+                  ? null
+                  : () async {
+                      iniciarCarga(); // ⏳ MOSTRAR LOADER
+
+                      await registrar(
+                        nombre.text,
+                        correo.text,
+                        contrasenia.text,
+                        context,
+                        imagen,
+                      );
+
+                      detenerCarga(); // ❌ OCULTAR LOADER
+                    },
+              child: cargando
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text("Registrarse"),
             ),
           ),
           TextButton(
@@ -171,55 +208,39 @@ Future<void> registrar(
   String correo,
   String contrasenia,
   BuildContext context,
+  XFile? imagen,
 ) async {
-  Future<bool> autenticacion = guardarAuth(correo, contrasenia, context);
-  if (await autenticacion) {
-    try {
-      // 1. Obtenemos el ID único del usuario recién creado
-      String uid = FirebaseAuth.instance.currentUser!.uid;
+  bool autenticado = await guardarAuth(correo, contrasenia, context);
+  if (!autenticado) return;
 
-      // 2. Creamos el mapa con la información (como el ejemplo de 'city' de la guía)
-      Map<String, dynamic> datosUsuario = {
-        "nombre": nombre,
-        "correo": correo,
-        "fecha_registro": DateTime.now(),
-      };
-      //aqui verificaremos que la imagen se guarde correctamente en storage
+  try {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
 
-      // 3. Guardamos en la colección usuarios usando el UID como nombre del documento
-      await db.collection("usuarios").doc(uid).set(datosUsuario);
+    Map<String, dynamic> datosUsuario = {
+      "nombre": nombre,
+      "correo": correo,
+      "fecha_registro": DateTime.now(),
+    };
 
-      // 4. Si todo sale bien, lo mandamos al login o inicio
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Éxito"),
-            content: Text("Registrado Correctamente"),
-          );
-        },
-      );
-      await Future.delayed(Duration(seconds: 1));
-      // ignore: use_build_context_synchronously
-      Navigator.pop(context);
-      // ignore: use_build_context_synchronously
-      Navigator.pushReplacementNamed(context, '/login');
-    } catch (e) {
-      // ignore: avoid_print
-      print("Error al guardar en Firestore: $e");
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Error al momento de intentar Registrar"),
-          );
-        },
-      );
+    if (imagen != null) {
+      bool imagenBien = await guardarImagenStorage(uid, imagen);
+      if (!imagenBien) {
+        mostrarError(context, "Error al subir la imagen");
+        return;
+      }
+
+      final imageUrl = Supabase.instance.client.storage
+          .from('fotoPerfil')
+          .getPublicUrl('$uid.png');
+
+      datosUsuario['fotoPerfil'] = imageUrl;
     }
+
+    await db.collection("usuarios").doc(uid).set(datosUsuario);
+
+    mostrarExito(context);
+  } catch (e) {
+    mostrarError(context, "Error al registrar usuario");
   }
 }
 
@@ -277,6 +298,63 @@ Future<void> abrirGaleria(cambiarImagen) async {
   final imagen = await ImagePicker().pickImage(source: ImageSource.gallery);
   cambiarImagen(imagen);
 }
-void guardarImagenStorage(){
-  
+
+Future<bool> guardarImagenStorage(String uid, XFile imagen) async {
+  try {
+    final supabase = Supabase.instance.client;
+
+    final file = File(imagen.path);
+
+    await supabase.storage
+        .from('fotoPerfil')
+        .upload(
+          '$uid.png',
+          file,
+          fileOptions: const FileOptions(
+            upsert: true,
+            contentType: 'image/png',
+          ),
+        );
+
+    return true;
+  } catch (e) {
+    print('Error subiendo imagen: $e');
+    return false;
+  }
+}
+
+void mostrarExito(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Éxito"),
+      content: const Text("Registrado correctamente"),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            Navigator.pushReplacementNamed(context, '/login');
+          },
+          child: const Text("Aceptar"),
+          
+        ),
+      ],
+    ),
+  );
+}
+
+void mostrarError(BuildContext context, String mensaje) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Error"),
+      content: Text(mensaje),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Aceptar"),
+        ),
+      ],
+    ),
+  );
 }
