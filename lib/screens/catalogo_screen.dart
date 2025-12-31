@@ -7,6 +7,12 @@ import 'package:proyecto_netflix/screens/reproductor_trailer_screen.dart';
 class CatalogoScreen extends StatelessWidget {
   const CatalogoScreen({super.key});
 
+  // --- CONFIGURACIÓN DE GIFS ---
+  // Puedes cambiar este link por el que quieras.
+  // Tip: Usa GIFs de texturas oscuras o abstractas para que no distraigan mucho.
+  final String gifBackground =
+      "https://i.pinimg.com/originals/0b/59/34/0b5934b623f3c6f5377f221959d77982.gif";
+
   Future<Map<String, dynamic>> cargarPeliculas() async {
     final ref = FirebaseDatabase.instance.ref('movies');
     final snapshot = await ref.get();
@@ -25,7 +31,7 @@ class CatalogoScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           "Catálogo",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: const Color.fromRGBO(158, 32, 32, 1),
         actions: [
@@ -37,112 +43,227 @@ class CatalogoScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: cargarPeliculas(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      // Usamos Stack para poner el GIF detrás de todo
+      body: Stack(
+        children: [
+          // 1. EL GIF DE FONDO
+          Positioned.fill(
+            child: Image.network(
+              gifBackground,
+              fit: BoxFit.cover,
+              // Esto ayuda a que si el link falla, no se rompa la app
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(color: Colors.black),
+            ),
+          ),
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text(
-                "No hay películas",
-                style: TextStyle(color: Colors.white),
-              ),
-            );
-          }
+          // 2. CAPA OSCURA (Overlay)
+          // Esto es vital para que el catálogo sea legible sobre el movimiento
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(
+                0.7,
+              ), // Ajusta la opacidad (0.0 a 1.0)
+            ),
+          ),
 
-          return ListView(
-            children: snapshot.data!.entries.map((categoria) {
-              final peliculasMap = categoria.value as Map;
-              final peliculas = peliculasMap.values.toList();
+          // 3. TU CONTENIDO ORIGINAL
+          FutureBuilder<Map<String, dynamic>>(
+            future: cargarPeliculas(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.red),
+                );
+              }
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Text(
-                      categoria.key,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Text(
+                    "No hay películas",
+                    style: TextStyle(color: Colors.white),
                   ),
-                  SizedBox(
-                    height: 230,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: peliculas.length,
-                      itemBuilder: (context, index) {
-                        final pelicula =
-                            peliculas[index] as Map<dynamic, dynamic>;
+                );
+              }
 
-                        return GestureDetector(
-                          onTap: () => modalPrevio(context, pelicula),
-                          /* {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ReproduccionScreen(pelicula: pelicula),
+              return ListView(
+                children: snapshot.data!.entries.map((categoria) {
+                  final peliculasMap = categoria.value as Map;
+                  final peliculas = peliculasMap.values.toList();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Text(
+                          categoria.key,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(blurRadius: 10, color: Colors.black),
+                            ], // Sombra para resaltar
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 230,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: peliculas.length,
+                          itemBuilder: (context, index) {
+                            final pelicula =
+                                peliculas[index] as Map<dynamic, dynamic>;
+
+                            return GestureDetector(
+                              onTap: () => modalPrevio(context, pelicula),
+                              child: Container(
+                                width: 150,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      child: ClipRRect(
+                                        // Bordes redondeados para que se vea moderno
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          pelicula["imagen"],
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      pelicula["titulo"],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
-                          }, */
-                          child: Container(
-                            width: 150,
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  child: Image.network(
-                                    pelicula["imagen"],
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  pelicula["titulo"],
-                                  style: const TextStyle(color: Colors.white),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
               );
-            }).toList(),
-          );
-        },
+            },
+          ),
+        ],
       ),
-      // Boton para ir a Perfil
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color.fromRGBO(158, 32, 32, 1),
+        backgroundColor: const Color.fromRGBO(158, 32, 32, 1),
         onPressed: () => Navigator.pushNamed(context, '/profile'),
-        child: const Icon(
-          Icons.person,
-          color: Color.fromRGBO(255, 255, 255, 1),
-        ),
+        child: const Icon(Icons.person, color: Colors.white),
       ),
     );
   }
 }
 
+//  Las funciones de cerrarSesion y modalPrevio
+
 Future<void> cerrarSesion(BuildContext context) async {
-  await FirebaseAuth.instance.signOut();
-  if (context.mounted) {
-    Navigator.pushReplacementNamed(context, '/login');
-  }
+  showDialog(
+    context: context,
+    barrierDismissible: false, // obliga a decidir
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: const Color(0xFF0B0B0B),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(
+            color: Color.fromRGBO(158, 32, 32, 1),
+            width: 1.5,
+          ),
+        ),
+        title: Column(
+          children: const [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Color.fromRGBO(158, 32, 32, 1),
+              size: 48,
+            ),
+            SizedBox(height: 12),
+            Text(
+              "¿Abandonar el catálogo?",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          "Si sales ahora, las sombras\ncerrarán la sesión por completo…",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+        actions: [
+          // BOTÓN CANCELAR
+          Expanded(
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: BorderSide(color: Colors.grey.shade700),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Permanecer"),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // BOTÓN SALIR
+          Expanded(
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color.fromRGBO(158, 32, 32, 1),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.pop(context);
+                await FirebaseAuth.instance.signOut();
+                if (context.mounted) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                }
+              },
+              child: const Text(
+                "Salir",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
 }
 
-//modal para preguntar si quiere ver la pelicula o el trailer
 void modalPrevio(BuildContext context, Map pelicula) {
   showDialog(
     context: context,
@@ -150,12 +271,11 @@ void modalPrevio(BuildContext context, Map pelicula) {
       return AlertDialog(
         backgroundColor: const Color(0xFF121212),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           "¿Qué deseas ver?",
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 20,
           ),
           textAlign: TextAlign.center,
         ),
@@ -168,18 +288,11 @@ void modalPrevio(BuildContext context, Map pelicula) {
               style: TextStyle(color: Colors.grey.shade300, fontSize: 14),
             ),
             const SizedBox(height: 25),
-
-            // BOTÓN TRÁILER
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.grey.shade800,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
                 onPressed: () {
                   Navigator.pop(context);
@@ -194,26 +307,15 @@ void modalPrevio(BuildContext context, Map pelicula) {
                   );
                 },
                 icon: const Icon(Icons.play_circle_outline),
-                label: const Text(
-                  "Ver tráiler",
-                  style: TextStyle(fontSize: 16),
-                ),
+                label: const Text("Ver tráiler"),
               ),
             ),
-
             const SizedBox(height: 12),
-
-            // BOTÓN PELÍCULA
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color.fromRGBO(158, 32, 32, 1),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
                 onPressed: () {
                   Navigator.pop(context);
@@ -228,10 +330,7 @@ void modalPrevio(BuildContext context, Map pelicula) {
                   );
                 },
                 icon: const Icon(Icons.movie),
-                label: const Text(
-                  "Ver película",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                label: const Text("Ver película"),
               ),
             ),
           ],
