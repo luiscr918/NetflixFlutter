@@ -1,10 +1,27 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:proyecto_netflix/const/firebase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  XFile? imagen;
+  void cambiarImagen(imagenNueva) {
+    setState(() {
+      imagen = imagenNueva;
+    });
+  }
+
+  bool cargando = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,7 +34,26 @@ class RegisterScreen extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        child: SafeArea(child: Center(child: _contenidoRegister(context))),
+        child: SafeArea(
+          child: Center(
+            child: _contenidoRegister(
+              context,
+              cambiarImagen,
+              imagen,
+              cargando,
+              () {
+                setState(() {
+                  cargando = true;
+                });
+              },
+              () {
+                setState(() {
+                  cargando = false;
+                });
+              },
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -26,7 +62,14 @@ class RegisterScreen extends StatelessWidget {
 TextEditingController nombre = TextEditingController();
 TextEditingController correo = TextEditingController();
 TextEditingController contrasenia = TextEditingController();
-Widget _contenidoRegister(BuildContext context) {
+Widget _contenidoRegister(
+  BuildContext context,
+  cambiarImagen,
+  imagen,
+  bool cargando,
+  VoidCallback iniciarCarga,
+  VoidCallback detenerCarga,
+) {
   return Padding(
     padding: EdgeInsets.all(24),
     child: Container(
@@ -91,6 +134,29 @@ Widget _contenidoRegister(BuildContext context) {
             ),
             style: TextStyle(color: Colors.white),
           ),
+          Text(""),
+          FilledButton.icon(
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(
+                Color.fromRGBO(139, 55, 55, 1),
+              ),
+            ),
+            onPressed: () => abrirGaleria(cambiarImagen),
+            label: Text("Seleccionar foto de perfil"),
+            icon: Icon(Icons.image_search),
+          ),
+          SizedBox(height: 16),
+
+          CircleAvatar(
+            radius: 60, //  tamaño (60 = 120x120)
+            backgroundColor: Colors.grey[800],
+            backgroundImage: imagen != null
+                ? FileImage(File(imagen!.path))
+                : null,
+            child: imagen == null
+                ? const Icon(Icons.person, size: 60, color: Colors.white54)
+                : null,
+          ),
 
           SizedBox(height: 32),
 
@@ -98,19 +164,41 @@ Widget _contenidoRegister(BuildContext context) {
             width: double.infinity,
             child: FilledButton(
               style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(
-                  Color.fromRGBO(158, 32, 32, 1),
-                ),
+                backgroundColor: WidgetStateProperty.resolveWith<Color>((
+                  states,
+                ) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return Colors.grey; // color cuando está deshabilitado
+                  }
+                  return const Color.fromRGBO(158, 32, 32, 1); // color normal
+                }),
               ),
-              onPressed: () => registrar(
-                nombre.text,
-                correo.text,
-                contrasenia.text,
-                context,
-              ),
-              child: Text("Registrarse"),
+              onPressed: cargando
+                  ? null
+                  : () async {
+                      iniciarCarga();
+                      await registrar(
+                        nombre.text,
+                        correo.text,
+                        contrasenia.text,
+                        context,
+                        imagen,
+                      );
+                      detenerCarga();
+                    },
+              child: cargando
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text("Registrarse"),
             ),
           ),
+
           TextButton(
             onPressed: () => Navigator.pushNamed(context, '/login'),
             child: Text(
@@ -129,54 +217,39 @@ Future<void> registrar(
   String correo,
   String contrasenia,
   BuildContext context,
+  XFile? imagen,
 ) async {
-  Future<bool> autenticacion = guardarAuth(correo, contrasenia, context);
-  if (await autenticacion) {
-    try {
-      // 1. Obtenemos el ID único del usuario recién creado
-      String uid = FirebaseAuth.instance.currentUser!.uid;
+  bool autenticado = await guardarAuth(correo, contrasenia, context);
+  if (!autenticado) return;
 
-      // 2. Creamos el mapa con la información (como el ejemplo de 'city' de la guía)
-      Map<String, dynamic> datosUsuario = {
-        "nombre": nombre,
-        "correo": correo,
-        "fecha_registro": DateTime.now(),
-      };
+  try {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
 
-      // 3. Guardamos en la colección usuarios usando el UID como nombre del documento
-      await db.collection("usuarios").doc(uid).set(datosUsuario);
+    Map<String, dynamic> datosUsuario = {
+      "nombre": nombre,
+      "correo": correo,
+      "fecha_registro": DateTime.now(),
+    };
 
-      // 4. Si todo sale bien, lo mandamos al login o inicio
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Éxito"),
-            content: Text("Registrado Correctamente"),
-          );
-        },
-      );
-      await Future.delayed(Duration(seconds: 1));
-      // ignore: use_build_context_synchronously
-      Navigator.pop(context);
-      // ignore: use_build_context_synchronously
-      Navigator.pushReplacementNamed(context, '/login');
-    } catch (e) {
-      // ignore: avoid_print
-      print("Error al guardar en Firestore: $e");
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Error al momento de intentar Registrar"),
-          );
-        },
-      );
+    if (imagen != null) {
+      bool imagenBien = await guardarImagenStorage(uid, imagen);
+      if (!imagenBien) {
+        mostrarError(context, "Error al subir la imagen");
+        return;
+      }
+
+      final imageUrl = Supabase.instance.client.storage
+          .from('fotoPerfil')
+          .getPublicUrl('$uid.png');
+
+      datosUsuario['fotoPerfil'] = imageUrl;
     }
+
+    await db.collection("usuarios").doc(uid).set(datosUsuario);
+
+    mostrarExito(context);
+  } catch (e) {
+    mostrarError(context, "Error al registrar usuario");
   }
 }
 
@@ -189,37 +262,19 @@ Future<bool> guardarAuth(String correo, String contrasenia, context) async {
     return true;
   } on FirebaseAuthException catch (e) {
     if (e.code == 'weak-password') {
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Contraseña no válida"),
-          );
-        },
+      mostrarError(
+        context,
+        "La contraseña es demasiado débil.\nNecesitas algo más fuerte para sobrevivir 🩸",
       );
     } else if (e.code == 'email-already-in-use') {
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Email ya en uso"),
-          );
-        },
+      mostrarError(
+        context,
+        "Este correo ya está registrado.\nAlguien más ya entró antes que tú… 👁️",
       );
     } else if (e.code == 'invalid-email') {
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Formato de Correo inválido"),
-          );
-        },
+      mostrarError(
+        context,
+        "El correo no tiene un formato válido.\nAlgo no se ve bien aquí ☠️",
       );
     }
   } catch (e) {
@@ -227,4 +282,107 @@ Future<bool> guardarAuth(String correo, String contrasenia, context) async {
     print(e);
   }
   return false;
+}
+
+//funcion para cargar una foto de perfil
+Future<void> abrirGaleria(cambiarImagen) async {
+  final imagen = await ImagePicker().pickImage(source: ImageSource.gallery);
+  cambiarImagen(imagen);
+}
+
+Future<bool> guardarImagenStorage(String uid, XFile imagen) async {
+  try {
+    final supabase = Supabase.instance.client;
+
+    final file = File(imagen.path);
+
+    await supabase.storage
+        .from('fotoPerfil')
+        .upload(
+          '$uid.png',
+          file,
+          fileOptions: const FileOptions(
+            upsert: true,
+            contentType: 'image/png',
+          ),
+        );
+
+    return true;
+  } catch (e) {
+    print('Error subiendo imagen: $e');
+    return false;
+  }
+}
+
+void mostrarExito(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF121212),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Row(
+        children: [
+          Icon(Icons.check_circle_outline, color: Colors.greenAccent),
+          SizedBox(width: 8),
+          Text(
+            "Bienvenido al horror",
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+      content: Text(
+        "Tu cuenta fue creada con éxito.\nPrepárate para el terror… 👁️",
+        style: TextStyle(color: Colors.grey.shade300),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            Navigator.pushReplacementNamed(context, '/login');
+          },
+          child: const Text(
+            "Entrar",
+            style: TextStyle(color: Colors.greenAccent),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+void mostrarError(BuildContext context, String mensaje) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF121212),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+          SizedBox(width: 8),
+          Text(
+            "Algo salió mal",
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+      content: Text(mensaje, style: TextStyle(color: Colors.grey.shade300)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text(
+            "Cerrar",
+            style: TextStyle(color: Colors.redAccent),
+          ),
+        ),
+      ],
+    ),
+  );
 }
